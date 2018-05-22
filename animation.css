@@ -1,0 +1,102 @@
+.spinner-master * {
+	transition:all 0.3s;
+	-webkit-transition:all 0.3s;
+	box-sizing:border-box;
+}
+
+.spinner-master {
+	position:relative;
+	margin:50px auto;
+	height:50px;
+	width:50px;
+}
+
+.spinner-master input[type=checkbox] {
+	display:none;
+}
+.spinner-master label {
+	cursor:pointer;
+	position:absolute;
+	z-index:99;
+	height:100%;
+	width:100%;
+	top:10px;
+	left:0;
+}
+
+.spinner-master .spinner {
+	position:absolute;
+	height:5px;
+	width:100%;
+	background-color:#000;
+}
+
+.spinner-master .diagonal.part-1 {
+	position:relative;
+	float:left;
+}
+.spinner-master .horizontal {
+	position:relative;
+	float:left;
+	margin-top:6px;
+}
+.spinner-master .diagonal.part-2 {
+	position:relative;
+	float:left;
+	margin-top:6px;
+}
+
+.spinner-master input[type=checkbox]:checked ~ .spinner-spin > .horizontal {
+	opacity: 0;
+}
+.spinner-master input[type=checkbox]:checked ~ .spinner-spin > .diagonal.part-1 {
+	transform:rotate(405deg);
+	-webkit-transform:rotate(405deg);
+	margin-top:10px;
+}
+.spinner-master input[type=checkbox]:checked ~ .spinner-spin > .diagonal.part-2 {
+	transform:rotate(-405deg);
+	-webkit-transform:rotate(-405deg);
+	margin-top:-16px;
+}
+
+
+.arrow-master * {
+	transition:all 0.3s;
+	-webkit-transition:all 0.3s;
+	box-sizing:border-box;
+}
+
+.arrow-master {
+	position:relative;
+	margin:50px auto;
+	height:50px;
+	width:50px;
+}
+
+.arrow-master input[type=checkbox] {
+	display:none;
+}
+.arrow-master label {
+	cursor:pointer;
+	position:absolute;
+	z-index:99;
+	height:100%;
+	width:100%;
+	top:10px;
+	left:0;
+}
+
+.arrow {
+  width: 0; 
+  height: 0; 
+  border-top: 60px solid transparent;
+  border-bottom: 60px solid transparent;  
+  border-left: 60px solid green;
+  border-right: 0px;
+ }
+
+.arrow-master input[type=checkbox]:checked ~ .arrow-spin > .arrow {
+  transform:rotate(-180deg);
+  -webkit-transform:rotate(-180deg);
+}
