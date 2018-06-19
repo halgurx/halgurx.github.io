@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>map packege</title>
+	<meta charset="UTF-8">
+    <link rel="stylesheet"  href="./css/ol.css" type="text/css">
+	<link rel="stylesheet"  href="./css/style.css" type="text/css">
+	<script src="./js/jquery.1.11.min.js"></script>
+	<script src='./js/jquery-ui.min.js'></script>
+    <script src="./js/ol.js"></script>
+    <script src="./ol_function.js"></script>
+  </head>
+  <body>
+    
+	<!--맵 element-->
+	<div id="map" class="map"></div>
+	
+	<!--map controller div-->
+	<div style="position:absolute;float:left;width:100%;top: 0;">
+		<div id="mapLayerBtn1" class="mapLayerBtn1">
+			<div class="arrow"></div>
+		</div>
+		<div id="mapLayer1" class="mapLayer1" style="float:left;left: 65px;top: 10px;width:180px;display:none">
+		  <div class="form-group">
+			
+			<!--<div class="col-sm-10" style="color:#fff;white-space : nowrap;">
+				<input type="checkbox" id="tyDateLabel1"  style="display:inline-block"/> <span style="white-space : nowrap;">Typhoon Date</span>
+			</div>-->
+			<div class="col-sm-10" style="color:#fff">
+				<input type="checkbox" id="iconLabel1"  style="display:inline-block"/> icon
+			</div>
+			<div class="col-sm-10" style="color:#fff">
+				<input type="checkbox" id="route1" checked="checked" style="display:inline-block"/> route
+			</div>
+		  </div>
+		</div>
+	</div>				
+					
+	<!--포인트 팝업 html소스-->						
+	<div id="pointPopup" class="ol-popup">
+		<div class="ol-popup-title">
+			<img src="" width="32" height="18"/>
+			<span class="ol-popup-title-content"></span>
+		</div>
+		<a href="#" id="popup-closer" class="ol-popup-closer"></a>
+		<div id="popup-content"></div>
+	</div>
+	<script>
+	    
+		//map 컨트롤러 스타일 제어
+		$("#mapLayerBtn1").on("click", function(){
+			$("#mapLayerBtn1").toggleClass("rotate");
+			$("#mapLayer1").toggle("slide", 500, function(d){
+				
+			});
+		});
+		
+		
+		//동작부
+		//map 레이어를 target element에 추가
+		var map = new ol.Map({
+			layers: [
+			  new ol.layer.Tile({
+				source: new ol.source.OSM()
+			  })
+			],
+			controls: ol.control.defaults().extend([
+							
+				new ol.control.Zoom()
+						
+			]),
+			target: 'map',
+			view: new ol.View({
+			  center: ol.proj.fromLonLat([118, 36.75]),
+			  zoom: 6
+			})
+		});
+		
+		
+		
+		// 경도 위도에따라 격자로 영역을 표시
+		/*var graticule = new ol.Graticule({
+		// the style to use for the lines, optional.
+			strokeStyle: new ol.style.Stroke({
+			  color: 'rgba(255,120,0,0.9)',
+			  width: 2,
+			  lineDash: [0.5, 4]
+			}),
+			showLabels: true
+		});
+		graticule.setMap(map);*/
+		
+		
+		//초기 변수 지정
+		
+		var bubbleLayer;
+		var iconLayer
+		var LabelOverlayarr=[];
+		var LabelC=false;
+		
+		
+		
+		
+		//map에 pointPopup element를 추가 하고 동작 제어 추가	
+		var pointPopup = new ol.Overlay({
+			element: document.getElementById("pointPopup"),
+			autoPan: true,
+			autoPanAnimation: {
+				duration: 250
+			}
+		});
+		
+		map.addOverlay(pointPopup);
+		
+		var pointPopupContent = document.getElementById('popup-content');
+		var pointPopupCloser = document.getElementById('popup-closer');
+		
+		pointPopupCloser.onclick = function() {
+			
+			pointPopup.setPosition(undefined);
+			pointPopupCloser.blur();
+			//select.getFeatures().clear();
+			return false;
+		};
+
+		
+		/* map상의 마우스 커서가 이동할때 특정한 요소위에 올라갈경우 cursor모양을 변경*/
+		map.on('pointermove', function(evt) {
+			var pointerFlag = map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+				if(feature.get("popup") ){
+					return true;
+				}
+			});
+			
+			map.getTargetElement().style.cursor =  pointerFlag ? 'pointer' : '';
+			
+		});
+
+		
+	
+		//map 요소를 한번 클릭할때 동작
+		
+		map.on("singleclick", function (evt) {
+			//select.getFeatures().clear();
+			
+			var coordinate = evt.coordinate;
+			
+			var info = map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+				//select.getFeatures().push(feature);
+				
+			
+				
+				
+				
+				return feature.get("popup");
+				
+			});
+			if(info){
+				pointPopupContent.innerHTML = '<p class="popup_content">'+info+'</p>';
+				pointPopup.setPosition(coordinate);
+			} else {
+				
+				$("#popup-closer").trigger("click");
+			}						
+		});
+					
+		
+		
+		$("#iconLabel1").on("click",function(){
+			LabelC = $("#iconLabel1").is(":checked");
+			iconLayer.changed();
+		});
+		
+		$("#route1").on("click",function(){
+			clearfunc();
+			if($("#route1").is(":checked")){
+				firstfunc();
+			}else{
+				secondfunc();
+			}
+		});
+		
+		//1번째 레이어 묶음 함수
+		function firstfunc(){
+			
+			//오버레이 함수 실행 오브젝트	
+			var labelobj={
+				name:"한국",
+				point:[128,36.75] //위도,경도
+			}
+			//오버레이 함수 실행	
+			var labelOverlay= makeLabel(labelobj);
+			map.addOverlay(labelOverlay);
+			LabelOverlayarr.push(labelOverlay);  //오버레이는 일괄적인 삭제가 불가능하고 하나하나 지정해서 지워야 하기떼믄에 전역배열변수에 추가.
+			
+			
+			// 아이콘을 여러개 생성할시 data에 배열로 여러개 넣어둔다.
+			var iconobj={
+				data:[
+					{
+						name:"서울", //아이콘에 추가될 네임
+						key:"sim1", //해당 아이콘에 인가된 key데이터
+						popup:"서울",  //해당 아이콘을 클릭햇을때 뜨는 팝업의 내용
+						icon:"./img/point.png", //아이콘 이미지 주소
+						point:[127.010797,37.496836] // 아이콘이 표시될 위도 경도
+					},
+					{	
+						name:"부산",
+						key:"sim2",
+						popup:"부산",
+						icon:"./img/point.png",
+						point:[129.120172,35.254591]
+					}
+				],
+				type:"icon"
+			};
+			
+			
+			var LabelC=false;
+			
+			var iconLayer=iconDraw(iconobj);
+			map.addLayer(iconLayer);
+			
+			
+			
+			if(bubbleLayer){
+				bubbleLayer.getSource().clear();
+				map.removeLayer(bubbleLayer);
+			}
+			
+			var bubleobj={
+				"eNm": {
+					"type":"P", 
+					"key":"eNm", 
+					"kname":"eNm", 
+					"point":[parseFloat(120.53),parseFloat(36.75)], 
+					"rate":0.4,
+					
+				}
+			}
+			
+			bubbleLayer = bubbleDraw(bubleobj);
+			map.addLayer(bubbleLayer);
+		}
+		
+		
+		//다른 레이어 추가 함수가 실행되기전에 모든 오버레이, layer를 초기화합니다.
+		function clearfunc(){
+			for(var ei=0;ei<LabelOverlayarr.length;ei++){
+						
+				map.removeOverlay(LabelOverlayarr[ei]);
+			}
+			
+			$("#popup-closer").trigger("click");
+			LabelOverlayarr=[];
+			
+			iconLayer.getSource().clear();
+			map.removeLayer(iconLayer);
+			bubbleLayer.getSource().clear();
+			map.removeLayer(bubbleLayer);
+		}
+		
+		firstfunc();
+    </script>
+  </body>
+</html>
